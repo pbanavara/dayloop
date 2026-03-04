@@ -25,7 +25,7 @@ function HomeForm() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?timezone=${encodeURIComponent(timezone)}&next=${encodeURIComponent(next)}`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?timezone=${encodeURIComponent(timezone)}&next=${encodeURIComponent(next)}`,
         shouldCreateUser: true,
       },
     })
