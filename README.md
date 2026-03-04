@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DayLoop
+
+A zero-friction daily planning loop. Plan tomorrow each evening, get a morning email with one-click done buttons. No app to install — email is the interface.
+
+## The Loop
+
+```
+9:30 PM  →  Evening email: yesterday's recap + planning link
+             └─ Click → planning page (magic link, no password)
+             └─ Add tasks via text or voice
+             └─ Tasks saved to Supabase
+
+7:30 AM  →  Morning email: today's tasks
+             └─ One-click [Done] button per task
+             └─ Or open the dashboard
+```
+
+## Stack
+
+| Layer | Choice |
+|---|---|
+| Frontend + API | Next.js 16 (App Router) |
+| Database + Auth | Supabase |
+| Email | Resend |
+| AI task parsing | OpenAI gpt-5-mini |
+| Voice input | Web Speech API |
+| Hosting + Cron | Vercel (Hobby plan) |
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone and install
+
+```bash
+git clone https://github.com/pbanavara/dayloop.git
+cd dayloop
+npm install
+```
+
+### 2. Set up environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in `.env.local`:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+RESEND_API_KEY=
+OPENAI_API_KEY=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+CRON_SECRET=any-random-string
+```
+
+### 3. Set up Supabase
+
+Run the migration in your Supabase project's SQL editor:
+
+```
+supabase/migrations/001_initial_schema.sql
+```
+
+In Supabase → Authentication → URL Configuration:
+- **Site URL**: `http://localhost:3000`
+- **Redirect URLs**: `http://localhost:3000/auth/callback`
+
+### 4. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deployment (Vercel)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Push to GitHub and import the repo on [vercel.com/new](https://vercel.com/new)
+2. Set all environment variables in the Vercel dashboard
+3. Set `NEXT_PUBLIC_APP_URL` to your Vercel domain
+4. Update Supabase redirect URLs to your production domain
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Cron jobs run daily — no Pro plan required:
+- `30 15 * * *` UTC → Morning email (7:30 AM PST)
+- `30 5 * * *` UTC → Evening email (9:30 PM PST)
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+├── emails/                  # React Email templates
+│   ├── MorningEmail.tsx
+│   └── EveningEmail.tsx
+├── src/
+│   ├── app/
+│   │   ├── page.tsx          # Landing + signup
+│   │   ├── plan/             # Evening planning page
+│   │   ├── dashboard/        # Today's tasks
+│   │   ├── action-confirm/   # One-click email action result
+│   │   └── api/
+│   │       ├── tasks/        # Task CRUD
+│   │       ├── action/       # Email token handler (public)
+│   │       ├── voice/        # Voice → OpenAI → tasks
+│   │       ├── profile/      # Timezone update
+│   │       └── cron/         # Morning + evening email jobs
+│   ├── components/
+│   ├── hooks/
+│   └── lib/
+└── supabase/migrations/
+```
