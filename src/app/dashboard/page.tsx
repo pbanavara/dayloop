@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { getTodayForTimezone, formatDateForDisplay } from '@/lib/cron'
 import TaskList from '@/components/TaskList'
-import TriggerButtons from '@/components/TriggerButtons'
 import TimezoneSync from '@/components/TimezoneSync'
 
 export default async function DashboardPage() {
@@ -50,7 +49,6 @@ export default async function DashboardPage() {
 
         <TimezoneSync profileTimezone={timezone} />
         <TaskList initialTasks={tasks ?? []} />
-        <TriggerButtons />
       </div>
     </main>
   )
